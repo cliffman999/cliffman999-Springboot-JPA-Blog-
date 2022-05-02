@@ -1,15 +1,18 @@
 package com.cos.blog.model;
 
 import java.sql.Timestamp;
+import java.util.List;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.CreationTimestamp;
@@ -39,9 +42,12 @@ public class Board {
 	@ColumnDefault("0")
 	private int count;
 	
-	@ManyToOne //Many=Board, User=One
+	@ManyToOne(fetch = FetchType.EAGER) //Many=Board, User=One
 	@JoinColumn(name="userId")
 	private User user; //데이터베이스는 오브젝트를 저장할 수 없어서 FK를 사용하지만 자바는 오브젝트를 저장할 수 있다.
+	
+	@OneToMany(mappedBy = "board", fetch = FetchType.EAGER) //mappedBy=연관관계의 주인이 아님(FK가 아님) 즉, DB에 칼럼을 만들지 않음
+	private List<Reply> reply;
 	
 	@CreationTimestamp
 	private Timestamp createDate;
