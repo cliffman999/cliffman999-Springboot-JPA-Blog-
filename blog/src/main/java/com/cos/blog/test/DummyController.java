@@ -3,12 +3,13 @@ package com.cos.blog.test;
 import java.util.List;
 import java.util.function.Supplier;
 
-
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -26,8 +27,18 @@ public class DummyController {
 	@Autowired //의존성주입(DI)
 	private UserRepository userRepository;
 	
+	@DeleteMapping("/dummy/user/{id}")
+	public String delete(@PathVariable int id) {
+		try {
+			userRepository.deleteById(id);
+		} catch(EmptyResultDataAccessException e) {
+			return "삭제에 실패하였습니다. 해당 ID는 DB에 없습니다";
+		}
+		return "삭제완료 id: "+id;
+	}
+	
 	//email,password수정
-	@Transactional //더티체킹
+	@Transactional //함수종료시에 자동 commit //commit값이 영속성컨텍스트의 값과 다르면 자동으로 DB를 수정 --> 더티체킹
 	@PutMapping("/dummy/user/{id}")
 	public User updateUser(@PathVariable int id, @RequestBody User requestUser) {
 		System.out.println("id : "+id);
@@ -42,8 +53,29 @@ public class DummyController {
 		
 		//userRepository.save(user); //save함수는 id를 전달하지 않거나 id가 없으면 insert를해주고
 								     //해당 id에 대한 데이터가 존재하면 update를해준다, 또한 객체를 전달할때 값이 존재하지 않으면 null값을 전달한다.
-		return null;
+		return user;
 	}
+
+//try, catch문을 이용한 update
+//	//email,password수정
+//	@Transactional //함수종료시에 자동 commit //commit값이 영속성컨텍스트의 값과 다르면 자동으로 DB를 수정 --> 더티체킹
+//	@PutMapping("/dummy/user/{id}")
+//	public User updateUser(@PathVariable int id, @RequestBody User requestUser) {
+//		System.out.println("id : "+id);
+//		System.out.println("password : "+requestUser.getPassword());
+//		System.out.println("email : "+requestUser.getEmail());
+//		User user = requestUser;
+//		try {
+//			user = userRepository.findById(id).get();
+//			user.setPassword(requestUser.getPassword());
+//			user.setEmail(requestUser.getEmail());
+//		} catch(Exception e) {
+//			return requestUser; 
+//		}
+//		//userRepository.save(user); //save함수는 id를 전달하지 않거나 id가 없으면 insert를해주고
+//								     //해당 id에 대한 데이터가 존재하면 update를해준다, 또한 객체를 전달할때 값이 존재하지 않으면 null값을 전달한다.
+//		return user;
+//	}
 	
 	//http://localhost:8000/blog/dummy/user
 	@GetMapping("/dummy/users")
