@@ -2,9 +2,11 @@ package com.cos.blog.service;
 
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.cos.blog.model.RoleType;
 import com.cos.blog.model.User;
 import com.cos.blog.repository.UserRepository;
 
@@ -17,15 +19,17 @@ public class UserService {
 	@Autowired
 	private UserRepository userRepository; 
 	
-	 //트랜잭션화 밑의 수행들이 실패가되면 ROLLBACK 성공하면 COMMIT이 수행됨
+	@Autowired
+	private BCryptPasswordEncoder encoder;
+	
+	//트랜잭션화 밑의 수행들이 실패가되면 ROLLBACK 성공하면 COMMIT이 수행됨
 	@Transactional
 	public void 회원가입(User user) {
+		String rawPasswordString = user.getPassword(); //원본 비밀번호
+		String encPasswordString = encoder.encode(rawPasswordString); //비밀번호 해쉬화
+		user.setPassword(encPasswordString);
+		user.setRole(RoleType.USER);
 		userRepository.save(user);
-	}
-	
-	@Transactional(readOnly=true) //select할때 트랜잭션 시작, 서비스종료시에 트랜잭션종료 (정합성 유지)
-	public User 로그인(User user) {
-		return userRepository.findByUsernameAndPassword(user.getUsername(), user.getPassword());
 	}
 
 }
